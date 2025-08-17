@@ -55,12 +55,12 @@ def main():
             else:
                 silent_chunks += 1
             current_file_finished_time = datetime.now()
-            duration_since_start = (datetime.now() - current_file_started_time).total_seconds()
+            duration_since_start = (current_file_finished_time - current_file_started_time).total_seconds()
             if silent_chunks > SILENCE_CHUNKS_THRESHOLD or duration_since_start >= MAX_FILE_DURATION_S:
                 state = "IDLE"
                 current_wave_file.close()
-                print(f"{current_file_started_time=}")
-                print(f"{current_file_finished_time=}")
+                with open(os.path.join(RECORDINGS_DIR, str(current_record_id)), "w") as f:
+                    f.write(f"{current_file_started_time=}\n{current_file_finished_time=}")
                 if duration_since_start >= MAX_FILE_DURATION_S and is_speech:
                     state = "IDLE"
                     is_speech = True
