@@ -1,0 +1,6 @@
+.idea
+.env
+.flake8
+dev
+tempdir
+pyrightconfig.json

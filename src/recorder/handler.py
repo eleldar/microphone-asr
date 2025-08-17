@@ -9,8 +9,8 @@ import webrtcvad
 
 VAD_AGGRESSIVENESS = int(os.getenv("VAD_AGGRESSIVENESS", 1))
 SILENCE_DURATION_S = int(os.getenv("SILENCE_DURATION_S", 2))
-MAX_FILE_DURATION_S = int(os.getenv("MAX_FILE_DURATION_S", 600))
-RECORDINGS_DIR = os.getenv("RECORDINGS_DIR", "recordings")
+MAX_FILE_DURATION_S = int(os.getenv("MAX_FILE_DURATION_S", 10))
+RECORDINGS_DIR = os.getenv("RECORDINGS_DIR", "tempdir")
 
 SAMPLE_RATE = 16000
 CHUNK_DURATION_MS = 30
@@ -25,7 +25,6 @@ def main():
     os.makedirs(RECORDINGS_DIR, exist_ok=True)
     sox_cmd = ["rec", "-t", "alsa", "default", "-t", "raw", "-r", str(SAMPLE_RATE), "-c", "1", "-b", "16", "-"]
     process = subprocess.Popen(sox_cmd, stdout=subprocess.PIPE)
-    print("Sox process started. Listening for voice activity...")
     state = "IDLE"
     silent_chunks = 0
     current_wave_file = None
@@ -36,33 +35,33 @@ def main():
         if not audio_chunk:
             break
         is_speech = vad.is_speech(audio_chunk, SAMPLE_RATE)
-        print(is_speech)
         if state == "IDLE":
             if is_speech:
                 state = "RECORDING"
                 silent_chunks = 0
                 start_time = datetime.now()
                 current_file_started_time = start_time
-                filename = f"{uuid.uuid4()}.wav"
+                current_record_id = uuid.uuid4()
+                filename = f"{current_record_id}.wav"
                 filepath = os.path.join(RECORDINGS_DIR, filename)
                 current_wave_file = wave.open(filepath, "wb")
                 current_wave_file.setnchannels(1)
                 current_wave_file.setsampwidth(2)
                 current_wave_file.setframerate(SAMPLE_RATE)
-                print(f"Speech detected! Started recording to {filename}")
-        elif state == "RECORDING":
+        elif current_wave_file is not None and current_file_started_time is not None and state == "RECORDING":
             current_wave_file.writeframes(audio_chunk)
             if is_speech:
                 silent_chunks = 0
             else:
                 silent_chunks += 1
+            current_file_finished_time = datetime.now()
             duration_since_start = (datetime.now() - current_file_started_time).total_seconds()
             if silent_chunks > SILENCE_CHUNKS_THRESHOLD or duration_since_start >= MAX_FILE_DURATION_S:
-                print("Stopping current recording segment...")
                 state = "IDLE"
                 current_wave_file.close()
+                print(f"{current_file_started_time=}")
+                print(f"{current_file_finished_time=}")
                 if duration_since_start >= MAX_FILE_DURATION_S and is_speech:
-                    print("Max duration reached, but speech continues. Starting new file immediately.")
                     state = "IDLE"
                     is_speech = True
                     continue

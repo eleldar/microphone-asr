@@ -1,0 +1,16 @@
+[project]
+name = "microphone-asr"
+version = "0.1.0"
+description = "Microphone ASR"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "python-dotenv>=1.1.1",
+    "webrtcvad-wheels>=2.0.14",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+    "requests>=2.32.4",
+]
