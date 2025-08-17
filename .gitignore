@@ -4,3 +4,5 @@
 dev
 tempdir
 pyrightconfig.json
+__pycache__
+*.egg-info/

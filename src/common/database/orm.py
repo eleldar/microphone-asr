@@ -1,7 +1,8 @@
-from domain.record import Record
 from sqlalchemy import Column, Float, ForeignKey, Integer, MetaData, String, Table
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Mapped, mapped_column, registry, relationship
+
+from common.domain.record import Record
 
 metadata = MetaData()
 mapper_registry = registry()
